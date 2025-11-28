@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_dashboard"
+            android:icon="@drawable/ic_dashboard"
+            android:title="@string/dashboard" />
+        <item
+            android:id="@+id/nav_manage_reservations"
+            android:icon="@drawable/ic_reservations"
+            android:title="@string/manage_reservations" />
+        <item
+            android:id="@+id/nav_manage_salons"
+            android:icon="@drawable/ic_salons"
+            android:title="@string/manage_salons" />
+        <item
+            android:id="@+id/nav_manage_services"
+            android:icon="@drawable/ic_services"
+            android:title="@string/manage_services" />
+        <item
+            android:id="@+id/nav_manage_admins"
+            android:icon="@drawable/ic_admins"
+            android:title="@string/manage_admins" />
+    </group>
+    
+    <item android:title="@string/account">
+        <menu>
+            <item
+                android:id="@+id/nav_profile"
+                android:icon="@drawable/ic_profile"
+                android:title="@string/profile" />
+            <item
+                android:id="@+id/nav_change_password"
+                android:icon="@drawable/ic_password"
+                android:title="@string/change_password" />
+            <item
+                android:id="@+id/nav_logout"
+                android:icon="@drawable/ic_logout"
+                android:title="@string/logout" />
+        </menu>
+    </item>
+</menu>

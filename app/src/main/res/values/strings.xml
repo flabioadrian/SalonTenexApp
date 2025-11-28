@@ -1,0 +1,68 @@
+<resources>
+    <string name="app_name">Salon Tenex App</string>
+    <string name="app_logo">Logo del Salon</string>
+    <string name="welcome_back">¡Bienvenido!</string>
+    <string name="login_to_continue">Inicia sesión para continuar</string>
+    <string name="email">Correo electrónico</string>
+    <string name="password">Contraseña</string>
+    <string name="login">Iniciar Sesión</string>
+    <string name="login_error">Error al iniciar sesión</string>
+    <string name="empty_fields">Por favor complete todos los campos</string>
+    <string name="title_activity_boton_de_navegacion">botonDeNavegacion</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="my_reservations">Mis Reservas</string>
+    <string name="new_reservation">Nueva Reserva</string>
+    <string name="profile">Perfil</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="manage_reservations">Gestionar Reservas</string>
+    <string name="manage_salons">Gestionar Salones</string>
+    <string name="manage_services">Gestionar Servicios</string>
+    <string name="manage_admins">Gestionar Admins</string>
+    <string name="account">Cuenta</string>
+    <string name="change_password">Cambiar Contraseña</string>
+    <string name="logout">Cerrar Sesión</string>
+    <string name="navigation_drawer_open">Abrir navegación</string>
+    <string name="navigation_drawer_close">Cerrar navegación</string>
+    <string name="panel_de_control">Panel de Control</string>
+    <string name="reservas_hoy">Reservas Hoy</string>
+    <string name="ingresos_mensuales">Ingresos Mensuales</string>
+    <string name="acciones_rapidas">Acciones Rápidas</string>
+    <string name="reservas_recientes">Reservas Recientes</string>
+    <string name="buscar_reservas">Buscar reservas...</string>
+    <string name="total_salones">Total Salones</string>
+    <string name="disponibles">Disponibles</string>
+    <string name="eliminar_salon">Eliminar Salón</string>
+    <string name="error_session_expired">Sesión expirada. Por favor inicia sesión nuevamente.</string>
+    <string name="confirmar_eliminacion">¿Estás seguro de que quieres eliminar este salón?</string>
+
+    <!-- Reservation Detail Dialog -->
+    <string name="reservation_details">Detalles de la Reserva</string>
+    <string name="status">Estado</string>
+    <string name="client_info">Información del Cliente</string>
+    <string name="event_details">Detalles del Evento</string>
+    <string name="salon">Salón</string>
+    <string name="service">Servicio</string>
+    <string name="date">Fecha</string>
+    <string name="time">Hora</string>
+    <string name="duration">Duración</string>
+    <string name="guests">Personas</string>
+    <string name="total_price">Precio Total</string>
+    <string name="additional_notes">Notas Adicionales</string>
+    <string name="edit">Editar</string>
+    <string name="cancel_reservation">Cancelar</string>
+    <string name="close">Cerrar</string>
+
+    <!-- Create Reservation Dialog -->
+    <string name="client">Cliente</string>
+    <string name="select_date">Seleccionar fecha</string>
+    <string name="start_time">Hora Inicio</string>
+    <string name="end_time">Hora Fin</string>
+    <string name="guest_count">Número de invitados</string>
+    <string name="additional_notes_optional">Notas adicionales (opcional)</string>
+    <string name="price_summary">Resumen de Precio</string>
+    <string name="salon_cost">Costo del salón</string>
+    <string name="service_cost">Costo del servicio</string>
+    <string name="create_reservation">Crear Reserva</string>
+</resources>

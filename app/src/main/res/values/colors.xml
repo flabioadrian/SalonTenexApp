@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="background_beige">#fdf6f0</color>
+    <color name="warm_beige">#f5e6dd</color>
+    <color name="text_dark_brown">#5d4037</color>
+    <color name="text_medium_brown">#8d6e63</color>
+    <color name="button_golden_brown">#8a5c39</color>
+    <color name="button_dark_brown">#5d4037</color>
+    <color name="error_red">#FF5252</color>
+    <color name="light_blue_400">#FF29B6F6</color>
+    <color name="light_blue_600">#FF039BE5</color>
+    <color name="gray_400">#FFBDBDBD</color>
+    <color name="gray_600">#FF757575</color>
+
+    <!-- Colores para estados -->
+    <color name="green">#4CAF50</color>
+    <color name="orange">#FF9800</color>
+    <color name="red">#F44336</color>
+    <color name="blue">#2196F3</color>
+
+    <!-- Colores para fondos -->
+    <color name="card_background">#FFFFFF</color>
+    <color name="status_confirmed">#4CAF50</color>
+    <color name="status_pending">#FF9800</color>
+    <color name="status_cancelled">#F44336</color>
+</resources>

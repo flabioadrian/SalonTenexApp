@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_my_reservations"
+        android:icon="@drawable/ic_reservations"
+        android:title="@string/my_reservations" />
+    <item
+        android:id="@+id/nav_new_reservation"
+        android:icon="@drawable/ic_add"
+        android:title="@string/new_reservation" />
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/ic_profile"
+        android:title="@string/profile" />
+</menu>
