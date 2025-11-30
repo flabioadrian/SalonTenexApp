@@ -11,6 +11,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import com.example.salontenexapp.Contrato.LoginContract
 import com.example.salontenexapp.Presentador.LoginPresenter
+import com.example.salontenexapp.data.api.RetrofitClient
 import com.example.salontenexapp.data.repository.AuthRepository
 import com.example.salontenexapp.util.SharedPreferencesManager
 
@@ -22,7 +23,7 @@ class LoginActivity : AppCompatActivity(), LoginContract.View {
     private lateinit var progressBar: ProgressBar
     private lateinit var tvError: TextView
 
-    private var presenter: LoginContract.Presenter? = null // Cambiar a nullable
+    private var presenter: LoginContract.Presenter? = null
 
     private lateinit var prefsManager: SharedPreferencesManager
 
@@ -32,33 +33,44 @@ class LoginActivity : AppCompatActivity(), LoginContract.View {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate iniciado")
 
         try {
-            // Inicializar primero
             prefsManager = SharedPreferencesManager(this)
-            Log.d(TAG, "SharedPreferencesManager inicializado")
 
-            // Verificar si ya hay sesión activa
-            if (prefsManager.isLoggedIn()) {
-                Log.d(TAG, "Usuario ya logueado, redirigiendo a MainActivity")
+            restoreSession()
+
+            if (prefsManager.isLoggedIn() && prefsManager.getSessionCookie() != null) {
                 val userType = prefsManager.getUserType() ?: "client"
                 redirectToMainActivity(userType)
                 return
+            } else if (prefsManager.isLoggedIn()) {
+                prefsManager.logout()
+                RetrofitClient.clearSession()
             }
-
-            Log.d(TAG, "Mostrando UI de login")
             setContentView(R.layout.activity_login)
 
             initializeViews()
             setupPresenter()
             setupClickListeners()
-
-            Log.d(TAG, "LoginActivity configurada exitosamente")
-
+            setupCookieListener()
         } catch (e: Exception) {
-            Log.e(TAG, "ERROR CRÍTICO en onCreate: ${e.message}", e)
             e.printStackTrace()
+        }
+    }
+
+    private fun restoreSession() {
+        val savedCookie = prefsManager.getSessionCookie()
+        if (savedCookie != null) {
+            RetrofitClient.restoreSession(savedCookie)
+        } else {
+            RetrofitClient.clearSession()
+        }
+    }
+
+    private fun setupCookieListener() {
+        RetrofitClient.setOnNewCookieListener { newCookie ->
+            Log.d(TAG, "Guardando nueva cookie de sesión en SharedPreferences")
+            prefsManager.saveSessionCookie(newCookie)
         }
     }
 
@@ -91,13 +103,11 @@ class LoginActivity : AppCompatActivity(), LoginContract.View {
         btnLogin.setOnClickListener {
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString().trim()
-            Log.d(TAG, "Intentando login con email: $email")
-            presenter?.login(email, password) // Usar safe call
+            presenter?.login(email, password)
         }
     }
 
     override fun showError(message: String) {
-        Log.e(TAG, "Error de login: $message")
         runOnUiThread {
             tvError.text = message
             tvError.visibility = TextView.VISIBLE
@@ -105,7 +115,6 @@ class LoginActivity : AppCompatActivity(), LoginContract.View {
     }
 
     override fun onLoginSuccess(userType: String) {
-        Log.d(TAG, "Login exitoso, redirigiendo a MainActivity con userType: $userType")
         runOnUiThread {
             tvError.visibility = TextView.GONE
             redirectToMainActivity(userType)
@@ -114,17 +123,13 @@ class LoginActivity : AppCompatActivity(), LoginContract.View {
 
     private fun redirectToMainActivity(userType: String) {
         try {
-            Log.d(TAG, "Creando Intent para MainActivity")
             val intent = Intent(this, MainActivity::class.java).apply {
                 putExtra("USER_TYPE", userType)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             }
-            Log.d(TAG, "Iniciando MainActivity")
             startActivity(intent)
-            Log.d(TAG, "Finalizando LoginActivity")
             finish()
         } catch (e: Exception) {
-            Log.e(TAG, "ERROR al redirigir a MainActivity: ${e.message}", e)
             e.printStackTrace()
             runOnUiThread {
                 tvError.text = "Error al iniciar aplicación: ${e.message}"
@@ -151,6 +156,6 @@ class LoginActivity : AppCompatActivity(), LoginContract.View {
 
     override fun onDestroy() {
         super.onDestroy()
-        presenter?.onDestroy() // Safe call
+        presenter?.onDestroy()
     }
 }

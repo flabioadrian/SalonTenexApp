@@ -6,17 +6,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
-import com.example.salontenexapp.Modelo.Client
+import com.example.salontenexapp.Modelo.Servicio
 
-class ClientSpinnerAdapter(context: Context, private val clients: List<Client>) :
-    ArrayAdapter<Client>(context, android.R.layout.simple_spinner_item, clients) {
+class ServicioSpinnerAdapter(context: Context, private val servicios: List<Servicio>) :
+    ArrayAdapter<Servicio>(context, android.R.layout.simple_spinner_item, servicios) {
 
-    override fun getItem(position: Int): Client? {
-        return clients.getOrNull(position)
+    override fun getItem(position: Int): Servicio? {
+        return servicios.getOrNull(position)
     }
 
     override fun getItemId(position: Int): Long {
-        return clients.getOrNull(position)?.id?.toLong() ?: -1L
+        return servicios.getOrNull(position)?.idServicio?.toLong() ?: -1L
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
@@ -32,10 +32,10 @@ class ClientSpinnerAdapter(context: Context, private val clients: List<Client>) 
             android.R.layout.simple_spinner_dropdown_item, parent, false
         )) as TextView
 
-        val client = clients.getOrNull(position)
-        view.text = client?.let {
-            it.nombre?.let { name -> "$name (${it.email})" } ?: it.email
-        } ?: "Seleccionar cliente"
+        val servicio = servicios.getOrNull(position)
+        view.text = servicio?.let {
+            it.nombreServicio
+        } ?: "Seleccionar servicio"
 
         return view
     }

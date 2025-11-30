@@ -1,63 +1,75 @@
-// RetrofitClient.kt
 package com.example.salontenexapp.data.api
-
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
+import retrofit2.Response
+import retrofit2.http.POST
+import retrofit2.http.Body
 
 object RetrofitClient {
     private const val BASE_URL = "https://salonestenex.b-corpsolutions.com/APIMobil/"
+    var sessionCookie: String? = null
+        private set
 
-    // Cookie manager mejorado
-    private val cookieManager = mutableMapOf<String, String>()
+    private var onSessionExpired: (() -> Unit)? = null
+    private var onNewCookieReceived: ((String) -> Unit)? = null
 
-    // Interceptor para guardar cookies de las respuestas
-    private val responseInterceptor = Interceptor { chain ->
-        val response = chain.proceed(chain.request())
+    fun restoreSession(cookie: String?) {
+        sessionCookie = cookie
+    }
 
-        // Guardar todas las cookies de la respuesta
-        val cookies = response.headers("Set-Cookie")
-        cookies.forEach { cookie ->
-            val parts = cookie.split(';').first().split('=')
-            if (parts.size == 2) {
-                cookieManager[parts[0]] = parts[1]
-            }
+    private val cookieInterceptor = Interceptor { chain ->
+        val request = chain.request()
+        val response = chain.proceed(request)
+
+        // Guardar cualquier cookie que recibamos del servidor
+        val cookies = response.headers.values("Set-Cookie")
+        val session = cookies.firstOrNull { it.startsWith("PHPSESSID") }
+
+        session?.let { cookie ->
+            val cleanCookie = cookie.split(';').first()
+            sessionCookie = cleanCookie
+
+            // Notificar para guardar en SharedPreferences
+            onNewCookieReceived?.invoke(cleanCookie)
+        }
+
+        response
+    }
+
+    private val sessionExpiredInterceptor = Interceptor { chain ->
+        val request = chain.request()
+        val response = chain.proceed(request)
+
+        if (response.code == 401) {
+            // Sesión expirada - limpiar y notificar
+            sessionCookie = null
+            onSessionExpired?.invoke()
         }
         response
     }
 
-    // Interceptor para agregar cookies a las requests
-    private val requestInterceptor = Interceptor { chain ->
-        val original = chain.request()
+    fun setOnNewCookieListener(listener: (String) -> Unit) {
+        onNewCookieReceived = listener
+    }
 
-        val requestBuilder = original.newBuilder()
+    private val authInterceptor = Interceptor { chain ->
+        var request = chain.request()
 
-        // Agregar todas las cookies guardadas
-        if (cookieManager.isNotEmpty()) {
-            val cookieHeader = cookieManager.entries.joinToString("; ") { "${it.key}=${it.value}" }
-            requestBuilder.header("Cookie", cookieHeader)
+        // Primero intentar con la cookie de sesión activa
+        sessionCookie?.let { cookie ->
+            request = request.newBuilder()
+                .header("Cookie", cookie)
+                .build()
         }
-
-        // Agregar headers importantes
-        requestBuilder
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-
-        chain.proceed(requestBuilder.build())
+        chain.proceed(request)
     }
 
     private val okHttpClient = OkHttpClient.Builder()
-        .addInterceptor(requestInterceptor)
-        .addInterceptor(responseInterceptor)
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        })
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
+        .addInterceptor(cookieInterceptor)
+        .addInterceptor(authInterceptor)
+        .addInterceptor(sessionExpiredInterceptor)
         .build()
 
     val retrofit: Retrofit by lazy {
@@ -68,17 +80,19 @@ object RetrofitClient {
             .build()
     }
 
+    fun setOnSessionExpiredListener(listener: () -> Unit) {
+        onSessionExpired = listener
+    }
+
+    fun clearSession() {
+        sessionCookie = null
+    }
+
     val apiService: APIService by lazy {
         retrofit.create(APIService::class.java)
     }
 
-    // Método para limpiar cookies (logout)
-    fun clearCookies() {
-        cookieManager.clear()
-    }
-
-    // Método para verificar si hay sesión activa
-    fun hasSession(): Boolean {
-        return cookieManager.isNotEmpty()
+    fun <T> getService(service: Class<T>): T {
+        return retrofit.create(service)
     }
 }

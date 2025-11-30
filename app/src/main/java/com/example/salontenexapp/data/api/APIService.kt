@@ -4,12 +4,21 @@ import com.example.salontenexapp.Modelo.Client
 import com.example.salontenexapp.Modelo.LoginRequest
 import com.example.salontenexapp.Modelo.LoginResponse
 import com.example.salontenexapp.data.Reservation
-import com.example.salontenexapp.Modelo.ReservationIdWrapper
+import com.example.salontenexapp.Modelo.ReservationRequest
 import com.example.salontenexapp.data.Salon
 import com.example.salontenexapp.Modelo.SalonResponse
-import okhttp3.Response
+import com.example.salontenexapp.Modelo.Servicio
+import com.example.salontenexapp.Modelo.ServicioRequest
+import com.example.salontenexapp.Modelo.ServicioResponse
+import com.example.salontenexapp.data.ApiResponse
+import com.example.salontenexapp.data.CancelReservationRequest
+import com.example.salontenexapp.data.EditReservationRequest
+import com.example.salontenexapp.data.ReservationClient
+import retrofit2.Response
+import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.HTTP
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
@@ -32,18 +41,17 @@ interface APIService {
     @POST("salas.php")
     suspend fun createSalon(@Body salon: Salon): SalonResponse
 
-    // 💡 Método Admin: Obtiene todas las reservas (requiere sesión admin)
     @GET("reservaciones_api.php")
-    suspend fun getRecentReservations(): List<Reservation>
+    suspend fun getReservations(): Response<List<Reservation>>
 
     @POST("reservaciones_api.php")
-    suspend fun createReservation(@Body reservation: Reservation): SalonResponse
+    suspend fun createReservation(@Body reservationData: ReservationRequest): Response<SalonResponse>
 
     @PUT("reservaciones_api.php")
-    suspend fun updateReservation(@Body reservation: Reservation): SalonResponse
+    suspend fun updateReservation(@Body updateData: Map<String, Any>): Response<SalonResponse>
 
     @PUT("reservaciones_api.php?action=cancelar")
-    suspend fun cancelReservation(@Body idWrapper: ReservationIdWrapper): SalonResponse
+    suspend fun cancelReservation(@Body cancelData: Map<String, Int>): Response<SalonResponse>
 
     @PUT("salas.php/{id}")
     suspend fun updateSalon(@Path("id") salonId: Int, @Body salon: Salon): SalonResponse
@@ -51,4 +59,25 @@ interface APIService {
     // NUEVOS ENDPOINTS
     @GET("clientes.php") // Necesitarás crear este endpoint en tu backend
     suspend fun getClients(): List<Client>
+
+    @GET("ver_reservas_cliente.php")
+    fun getClientReservations(): Call<List<ReservationClient>>
+
+    @POST("cancelar_reserva.php")
+    fun cancelReservation(@Body request: CancelReservationRequest): Call<ApiResponse>
+
+    @POST("editar_reserva.php")
+    fun editReservation(@Body request: EditReservationRequest): Call<ApiResponse>
+
+    @GET("servicios_api.php")
+    suspend fun getServicios(): Response<ServicioResponse>
+
+    @POST("servicios_api.php")
+    suspend fun createServicio(@Body servicio: ServicioRequest): Response<ServicioResponse>
+
+    @PUT("servicios_api.php")
+    suspend fun updateServicio(@Body servicio: Map<String, Any>): Response<ServicioResponse>
+
+    @HTTP(method = "DELETE", path = "servicios_api.php", hasBody = true)
+    suspend fun deleteServicio(@Body request: Map<String, Int>): Response<ServicioResponse>
 }

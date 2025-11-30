@@ -15,7 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.salontenexapp.R
 import kotlinx.coroutines.withContext
-import android.util.Log
 import com.example.salontenexapp.Vista.adapter.RecentReservationsAdapter
 
 class AdminDashboardFragment : Fragment() {
@@ -40,7 +39,9 @@ class AdminDashboardFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        recentReservationsAdapter = RecentReservationsAdapter()
+        recentReservationsAdapter = RecentReservationsAdapter{
+
+        }
         binding.rvRecentReservations.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = recentReservationsAdapter
@@ -51,15 +52,21 @@ class AdminDashboardFragment : Fragment() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val apiService = RetrofitClient.apiService
-                val recentReservations = apiService.getRecentReservations()
+                val response = apiService.getReservations()
 
                 withContext(Dispatchers.Main) {
-                    if (recentReservations.isNotEmpty()) {
-                        recentReservationsAdapter.submitList(recentReservations)
-                        Log.d("API", "Reservas cargadas exitosamente: ${recentReservations.size}")
+                    if (response.isSuccessful) {
+                        val recentReservations = response.body()
+                        if (!recentReservations.isNullOrEmpty()) {
+                            recentReservationsAdapter.submitList(recentReservations)
+                        } else {
+                            recentReservationsAdapter.submitList(emptyList())
+                        }
+
                     } else {
-                        Log.d("API", "La API devolvió una lista de reservas vacía.")
+                        recentReservationsAdapter.submitList(emptyList()) // Limpiar el adaptador
                     }
+
                     val todayReservations = 12
                     val monthlyRevenue = 8450.0
                     binding.tvTodayReservations.text = todayReservations.toString()
@@ -67,7 +74,6 @@ class AdminDashboardFragment : Fragment() {
                 }
 
             } catch (e: Exception) {
-                Log.e("API_ERROR", "Error al cargar datos del dashboard: ${e.message}", e)
                 withContext(Dispatchers.Main) {
                     binding.tvTodayReservations.text = "N/A"
                     binding.tvMonthlyRevenue.text = "N/A"
@@ -76,9 +82,7 @@ class AdminDashboardFragment : Fragment() {
         }
     }
 
-    // Métodos para los clicks de las acciones rápidas
     fun onManageReservationsClick(view: View) {
-        // Navegar al fragment de gestión de reservas
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, ManageReservationsFragment())
             .addToBackStack(null)

@@ -1,4 +1,3 @@
-// LoginPresenter.kt
 package com.example.salontenexapp.Presentador
 
 import com.example.salontenexapp.Contrato.LoginContract
@@ -33,14 +32,27 @@ class LoginPresenter(
 
             result.onSuccess { response ->
                 val userType = response.user_type ?: "client"
-                prefsManager.saveLoginStatus(true, userType)
+                val userData = response.user_data
 
-                // Verificar que la sesión se guardó
-                if (repository.hasActiveSession()) {
-                    view.onLoginSuccess(userType)
+                if (userData != null) {
+                    prefsManager.saveUserData(
+                        isLoggedIn = true,
+                        userType = userType,
+                        userId = userData.id ?: -1,
+                        email = userData.email ?: email,
+                        name = userData.name ?: ""
+                    )
                 } else {
-                    view.showError("Error al establecer la sesión")
+                    prefsManager.saveUserData(
+                        isLoggedIn = true,
+                        userType = userType,
+                        userId = -1,
+                        email = email,
+                        name = ""
+                    )
                 }
+
+                view.onLoginSuccess(userType)
             }.onFailure { exception ->
                 view.showError(exception.message ?: "Error desconocido en el login.")
             }
@@ -48,7 +60,7 @@ class LoginPresenter(
     }
 
     override fun validateFields(email: String, password: String): Boolean {
-        return email.isEmpty() || password.isEmpty() // Cambié "and" por "||"
+        return email.isEmpty() && password.isEmpty()
     }
 
     override fun onDestroy() {

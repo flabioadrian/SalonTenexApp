@@ -1,4 +1,3 @@
-// ManageReservationsPresenter.kt
 package com.example.salontenexapp.Presentador
 
 import com.example.salontenexapp.Contrato.ManagerReservationContract
@@ -8,55 +7,67 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import retrofit2.Response
 
 class ManageReservationsPresenter(
     private val view: ManagerReservationContract.ManageReservationsView,
     private val apiService: APIService
-) {
+) : ManagerReservationContract.ManageReservationsPresenter {
 
-    private var allReservations: List<Reservation> = emptyList()
+    private var originalReservations: List<Reservation> = emptyList()
+    private var currentFilter: String = "Todas"
 
-    // En tu ManageReservationsPresenter
-    fun loadReservations() {
+    override fun loadReservations() {
+        view.showLoading()
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                view.showLoading()
-                val reservations = apiService.getRecentReservations()
-                allReservations = reservations
-
+                val response = apiService.getReservations()
                 withContext(Dispatchers.Main) {
                     view.hideLoading()
-                    view.onReservationsLoaded(reservations)
-                }
+                    if (response.isSuccessful) {
+                        originalReservations = response.body() ?: emptyList()
+                        view.onReservationsLoaded(response)
 
+                        if (currentFilter != "Todas") {
+                            filterReservations(currentFilter)
+                        }
+                    } else {
+                        view.showError("Error al cargar las reservaciones: ${response.code()}")
+                    }
+                }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     view.hideLoading()
-
-                    when {
-                        e is retrofit2.HttpException && e.code() == 401 -> {
-                            view.showSessionExpired()
-                        }
-                        else -> {
-                            view.showError("Error al cargar reservas: ${e.message}")
-                        }
-                    }
+                    view.showError("Error de conexión: ${e.message}")
                 }
             }
         }
     }
 
-    fun filterReservations(status: String) {
-        val filtered = when (status) {
-            "Pendientes" -> allReservations.filter { it.status.equals("Pendiente", ignoreCase = true) }
-            "Confirmadas" -> allReservations.filter { it.status.equals("Confirmada", ignoreCase = true) }
-            "Canceladas" -> allReservations.filter { it.status.equals("Cancelada", ignoreCase = true) }
-            else -> allReservations
+    override fun filterReservations(filter: String) {
+        currentFilter = filter
+
+        if (filter == "Todas") {
+            view.onFilteredReservationsLoaded(originalReservations)
+            return
         }
-        view.onReservationsLoaded(filtered)
+
+        val filteredList = when (filter) {
+            "Pendientes" -> originalReservations.filter { it.status.equals("pendiente", ignoreCase = true) }
+            "Confirmadas" -> originalReservations.filter { it.status.equals("confirmada", ignoreCase = true) }
+            "Canceladas" -> originalReservations.filter { it.status.equals("cancelada", ignoreCase = true) }
+            else -> originalReservations
+        }
+
+        view.onFilteredReservationsLoaded(filteredList)
     }
 
-    fun refreshReservations() {
+    override fun refreshReservations() {
         loadReservations()
+    }
+
+    override fun getOriginalList(): List<Reservation>? {
+        return originalReservations
     }
 }

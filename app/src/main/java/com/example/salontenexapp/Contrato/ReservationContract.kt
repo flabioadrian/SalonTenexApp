@@ -3,28 +3,9 @@ package com.example.salontenexapp.Contrato
 import com.example.salontenexapp.data.Reservation
 import com.example.salontenexapp.Modelo.Client // Asumo estas clases de modelo
 import com.example.salontenexapp.data.Salon
-import com.example.salontenexapp.Modelo.Service
+import com.example.salontenexapp.Modelo.Servicio
 
 interface ReservationContract {
-
-    interface View {
-        fun showLoading(show: Boolean)
-        fun showData(clients: List<Client>, salons: List<Salon>, services: List<Service>)
-        fun showMessage(message: String)
-        fun dismissDialog(reservation: Reservation?)
-        fun setFormMode(isEdit: Boolean, reservation: Reservation?)
-        fun populateForm(reservation: Reservation)
-        fun getFormData(): Map<String, String>
-        fun isFormValid(): Boolean
-    }
-
-    interface Presenter {
-        fun attachView(view: View, reservationToEdit: Reservation?)
-        fun detachView()
-        fun loadInitialData() // Clientes, Salones, Servicios
-        fun processReservationAction() // Crear o Editar
-        fun dateSelected(date: String)
-    }
 
     interface CreateReservationView {
         fun onClientsLoaded(clients: List<Client>)
@@ -32,5 +13,16 @@ interface ReservationContract {
         fun showLoading()
         fun hideLoading()
         fun showError(message: String)
+        fun onServiciosLoaded(servicios: List<Servicio>)
+        fun onReservationCreated()
+        fun onReservationCreationFailed(error: String)
+    }
+
+    interface CreateReservationPresenter {
+        fun loadInitialData()
+        fun getClientByPosition(position: Int): Client?
+        fun getSalonByPosition(position: Int): Salon?
+        fun getServicioByPosition(position: Int): Servicio?
+        fun createReservation(client: Client, salon: Salon, date: String, startTime: String, endTime: String, service: String)
     }
 }

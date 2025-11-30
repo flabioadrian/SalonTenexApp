@@ -9,7 +9,7 @@ import com.example.salontenexapp.databinding.ItemRecentReservationBinding
 import com.example.salontenexapp.data.Reservation
 import com.example.salontenexapp.R
 
-class RecentReservationsAdapter : ListAdapter<Reservation, RecentReservationsAdapter.ViewHolder>(DiffCallback) {
+class RecentReservationsAdapter(private val onItemClick: (Reservation) -> Unit) : ListAdapter<Reservation, RecentReservationsAdapter.ViewHolder>(DiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemRecentReservationBinding.inflate(
@@ -21,6 +21,10 @@ class RecentReservationsAdapter : ListAdapter<Reservation, RecentReservationsAda
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val reservation = getItem(position)
         holder.bind(reservation)
+
+        holder.itemView.setOnClickListener {
+            onItemClick(reservation)
+        }
     }
 
     class ViewHolder(private val binding: ItemRecentReservationBinding) :

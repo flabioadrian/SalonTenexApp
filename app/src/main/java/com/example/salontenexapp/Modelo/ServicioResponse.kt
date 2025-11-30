@@ -2,8 +2,8 @@ package com.example.salontenexapp.Modelo
 
 import com.google.gson.annotations.SerializedName
 
-data class SalonResponse(
+data class ServicioResponse(
     @SerializedName("success") val success: Boolean,
     @SerializedName("message") val message: String,
-    @SerializedName("id") val id: Int? = null
+    @SerializedName("data") val data: List<Servicio>?
 )
