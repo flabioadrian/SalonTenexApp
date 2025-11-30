@@ -1,5 +1,7 @@
 package com.example.salontenexapp.data.api
 
+import com.example.salontenexapp.Modelo.ChangePasswordRequest
+import com.example.salontenexapp.Modelo.ChangePasswordResponse
 import com.example.salontenexapp.Modelo.Client
 import com.example.salontenexapp.Modelo.LoginRequest
 import com.example.salontenexapp.Modelo.LoginResponse
@@ -89,4 +91,7 @@ interface APIService {
     @Multipart
     @POST("upload_image.php")
     suspend fun uploadImage(@Part image: MultipartBody.Part): Response<UploadImageResponse>
+
+    @POST("cambiar_password.php")
+    suspend fun changePassword(@Body request: ChangePasswordRequest): ChangePasswordResponse
 }
