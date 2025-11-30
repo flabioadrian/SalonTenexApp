@@ -1,7 +1,6 @@
 package com.example.salontenexapp.Contrato
 
-import com.example.salontenexapp.data.Reservation
-import com.example.salontenexapp.Modelo.Client // Asumo estas clases de modelo
+import com.example.salontenexapp.Modelo.Client
 import com.example.salontenexapp.data.Salon
 import com.example.salontenexapp.Modelo.Servicio
 

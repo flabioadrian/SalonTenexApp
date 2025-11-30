@@ -63,18 +63,15 @@ class ManageSalonsFragment : Fragment() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val apiService = RetrofitClient.apiService
-                val salons = apiService.getSalons() // Llamada real a la API
+                val salons = apiService.getSalons()
 
                 withContext(Dispatchers.Main) {
                     salonsAdapter.submitList(salons)
-                    updateStatistics() // Asegúrate de que esta función tome los datos del adapter
+                    updateStatistics()
                 }
             } catch (e: Exception) {
-                Log.e("API_SALONS", "Error al cargar salones: ${e.message}")
                 withContext(Dispatchers.Main) {
-                    // Mostrar un mensaje de error al usuario
-                    // Toast.makeText(requireContext(), "Error al cargar salones: ${e.message}", Toast.LENGTH_LONG).show()
-                    salonsAdapter.submitList(emptyList()) // Limpiar lista en caso de error
+                    salonsAdapter.submitList(emptyList())
                 }
             }
         }
@@ -91,7 +88,6 @@ class ManageSalonsFragment : Fragment() {
     private fun showAddSalonDialog() {
         val dialog = AddSalonDialog()
         dialog.setOnSalonAddedListener { newSalon ->
-            // Agregar nuevo salón a la lista
             val currentList = salonsAdapter.currentList.toMutableList()
             currentList.add(0, newSalon)
             salonsAdapter.submitList(currentList)
@@ -103,7 +99,6 @@ class ManageSalonsFragment : Fragment() {
     private fun showEditSalonDialog(salon: Salon) {
         val dialog = EditSalonDialog.newInstance(salon)
         dialog.setOnSalonUpdatedListener { updatedSalon ->
-            // Actualizar salón en la lista
             val currentList = salonsAdapter.currentList.toMutableList()
             val index = currentList.indexOfFirst { it.id == updatedSalon.id }
             if (index != -1) {

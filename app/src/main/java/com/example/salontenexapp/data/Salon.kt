@@ -11,4 +11,20 @@ data class Salon(
     val description: String, // -> descripcion
     val price: Double, // -> precio
     val imageUrl: String? = null // -> imagen
-) : Parcelable
+) : Parcelable {
+    fun getFullImageUrl(): String {
+        return if (imageUrl.isNullOrEmpty() || imageUrl == "default.jpg") {
+            // Imagen por defecto
+            "https://salonestenex.b-corpsolutions.com/img/default.jpg"
+        } else if (imageUrl!!.startsWith("http")) {
+            // Ya es una URL completa
+            imageUrl
+        } else if (imageUrl!!.startsWith("img/")) {
+            // Es una ruta relativa del servidor
+            "https://salonestenex.b-corpsolutions.com/$imageUrl"
+        } else {
+            // Solo el nombre del archivo
+            "https://salonestenex.b-corpsolutions.com/img/$imageUrl"
+        }
+    }
+}

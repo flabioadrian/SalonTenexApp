@@ -29,12 +29,9 @@ class SalonsAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(salon: Salon) {
-            binding.tvSalonName.text = salon.name
-            binding.tvCapacity.text = "Capacidad: ${salon.capacity} personas"
-            binding.tvDescription.text = salon.description
-            binding.tvPrice.text = "$${salon.price}"
+            binding.salon = salon
 
-            // Configurar disponibilidad
+            binding.executePendingBindings()
             binding.tvAvailable.text = "Disponible"
             binding.tvAvailable.setTextColor(ContextCompat.getColor(binding.root.context, R.color.green))
             binding.availabilityIndicator.setCardBackgroundColor(ContextCompat.getColor(binding.root.context, R.color.green))

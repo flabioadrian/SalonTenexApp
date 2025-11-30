@@ -17,10 +17,6 @@
             android:id="@+id/nav_manage_services"
             android:icon="@drawable/ic_services"
             android:title="@string/manage_services" />
-        <item
-            android:id="@+id/nav_manage_admins"
-            android:icon="@drawable/ic_admins"
-            android:title="@string/manage_admins" />
     </group>
     
     <item android:title="@string/account">

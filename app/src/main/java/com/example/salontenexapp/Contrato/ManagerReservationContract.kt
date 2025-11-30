@@ -1,6 +1,5 @@
 package com.example.salontenexapp.Contrato
 
-import com.example.salontenexapp.Modelo.Servicio
 import com.example.salontenexapp.data.Reservation
 import retrofit2.Response
 

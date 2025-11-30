@@ -8,13 +8,22 @@ import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.os.BundleCompat
 import androidx.fragment.app.DialogFragment
 import com.bumptech.glide.Glide
 import com.example.salontenexapp.data.Salon
 import com.example.salontenexapp.databinding.DialogEditSalonBinding
-import com.example.salontenexapp.util.ImageUtils
+import com.example.salontenexapp.data.api.RetrofitClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.InputStream
 
 class EditSalonDialog : DialogFragment() {
 
@@ -75,9 +84,13 @@ class EditSalonDialog : DialogFragment() {
 
         // Cargar imagen actual si existe
         if (!currentSalon.imageUrl.isNullOrEmpty() && currentSalon.imageUrl != "default.jpg") {
-            // Aquí usarías Glide o Picasso para cargar la imagen desde la URL
+            Glide.with(this)
+                .load(currentSalon.getFullImageUrl())
+                .into(binding.ivSalonImage)
             binding.tvImageStatus.text = "Imagen actual cargada"
             uploadedImageUrl = currentSalon.imageUrl
+        } else {
+            binding.tvImageStatus.text = "Sin imagen"
         }
     }
 
@@ -88,7 +101,7 @@ class EditSalonDialog : DialogFragment() {
 
         binding.btnUpdate.setOnClickListener {
             if (validateFields()) {
-                updateSalon()
+                updateSalonOnServer()
             }
         }
 
@@ -106,21 +119,51 @@ class EditSalonDialog : DialogFragment() {
         binding.progressImage.visibility = View.VISIBLE
         binding.tvImageStatus.text = "Subiendo imagen..."
 
-        // Simular subida de imagen (reemplaza con tu lógica real)
-        simulateImageUpload()
-    }
+        try {
+            val inputStream: InputStream? = requireContext().contentResolver.openInputStream(uri)
+            val imageBytes = inputStream?.readBytes() ?: ByteArray(0)
+            val mediaType = (requireContext().contentResolver.getType(uri) ?: "image/*").toMediaTypeOrNull()
+            val requestFile = imageBytes.toRequestBody(mediaType)
 
-    private fun simulateImageUpload() {
-        // Simular proceso de subida
-        Thread {
-            Thread.sleep(2000) // Simular tiempo de subida
+            val imagePart = MultipartBody.Part.createFormData("image", "image.jpg", requestFile)
 
-            requireActivity().runOnUiThread {
-                binding.progressImage.visibility = View.GONE
-                binding.tvImageStatus.text = "Imagen subida exitosamente"
-                uploadedImageUrl = "img/APIMobil/salon_${System.currentTimeMillis()}.jpg"
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val apiService = RetrofitClient.apiService
+                    val response = apiService.uploadImage(imagePart)
+
+                    if (response.isSuccessful) {
+                        val uploadResponse = response.body()
+                        if (uploadResponse?.success == true) {
+                            uploadedImageUrl = uploadResponse.imageUrl
+                            requireActivity().runOnUiThread {
+                                binding.progressImage.visibility = View.GONE
+                                binding.tvImageStatus.text = "Imagen subida exitosamente"
+                            }
+                        } else {
+                            requireActivity().runOnUiThread {
+                                binding.progressImage.visibility = View.GONE
+                                binding.tvImageStatus.text = "Error: ${uploadResponse?.error}"
+                            }
+                        }
+                    } else {
+                        requireActivity().runOnUiThread {
+                            binding.progressImage.visibility = View.GONE
+                            binding.tvImageStatus.text = "Error en la subida"
+                        }
+                    }
+                } catch (e: Exception) {
+                    requireActivity().runOnUiThread {
+                        binding.progressImage.visibility = View.GONE
+                        binding.tvImageStatus.text = "Error: ${e.message}"
+                    }
+                }
             }
-        }.start()
+
+        } catch (e: Exception) {
+            binding.progressImage.visibility = View.GONE
+            binding.tvImageStatus.text = "Error al procesar imagen: ${e.message}"
+        }
     }
 
     private fun validateFields(): Boolean {
@@ -146,11 +189,15 @@ class EditSalonDialog : DialogFragment() {
         return true
     }
 
-    private fun updateSalon() {
+    private fun updateSalonOnServer() {
         val name = binding.etSalonName.text.toString()
         val capacity = binding.etCapacity.text.toString().toIntOrNull() ?: 0
         val price = binding.etPrice.text.toString().toDoubleOrNull() ?: 0.0
         val description = binding.etDescription.text.toString()
+
+        // Mostrar progreso
+        binding.progressImage.visibility = View.VISIBLE
+        binding.tvImageStatus.text = "Actualizando salón..."
 
         val updatedSalon = currentSalon.copy(
             name = name,
@@ -160,8 +207,45 @@ class EditSalonDialog : DialogFragment() {
             imageUrl = uploadedImageUrl ?: currentSalon.imageUrl
         )
 
-        onSalonUpdatedListener?.invoke(updatedSalon)
-        dismiss()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val apiService = RetrofitClient.apiService
+                val response = apiService.updateSalon(updatedSalon)
+
+                withContext(Dispatchers.Main) {
+                    binding.progressImage.visibility = View.GONE
+
+                    if (response.isSuccessful) {
+                        val salonResponse = response.body()
+                        if (salonResponse?.success == true) {
+                            onSalonUpdatedListener?.invoke(updatedSalon)
+                            Toast.makeText(requireContext(), "Salón actualizado exitosamente", Toast.LENGTH_SHORT).show()
+                            dismiss()
+                        } else {
+                            // Mostrar el mensaje de error del servidor
+                            val errorMsg = salonResponse?.message ?: "Error desconocido"
+                            Toast.makeText(requireContext(), "Error: $errorMsg", Toast.LENGTH_SHORT).show()
+                            binding.tvImageStatus.text = "Error: $errorMsg"
+                        }
+                    } else {
+                        val errorMsg = when (response.code()) {
+                            500 -> "Error interno del servidor"
+                            400 -> "Solicitud incorrecta"
+                            401 -> "No autorizado"
+                            else -> "Error ${response.code()}"
+                        }
+                        Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_SHORT).show()
+                        binding.tvImageStatus.text = errorMsg
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    binding.progressImage.visibility = View.GONE
+                    Toast.makeText(requireContext(), "Error de conexión: ${e.message}", Toast.LENGTH_SHORT).show()
+                    binding.tvImageStatus.text = "Error: ${e.message}"
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {

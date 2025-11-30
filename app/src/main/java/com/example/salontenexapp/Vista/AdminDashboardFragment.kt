@@ -1,4 +1,3 @@
-// Archivo: Vista/AdminDashboardFragment.kt
 package com.example.salontenexapp.Vista
 
 import android.os.Bundle
@@ -36,10 +35,11 @@ class AdminDashboardFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         loadDashboardData()
+        setupClickListeners()
     }
 
     private fun setupRecyclerView() {
-        recentReservationsAdapter = RecentReservationsAdapter{
+        recentReservationsAdapter = RecentReservationsAdapter { reservation ->
 
         }
         binding.rvRecentReservations.apply {
@@ -62,9 +62,8 @@ class AdminDashboardFragment : Fragment() {
                         } else {
                             recentReservationsAdapter.submitList(emptyList())
                         }
-
                     } else {
-                        recentReservationsAdapter.submitList(emptyList()) // Limpiar el adaptador
+                        recentReservationsAdapter.submitList(emptyList())
                     }
 
                     val todayReservations = 12
@@ -77,33 +76,35 @@ class AdminDashboardFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     binding.tvTodayReservations.text = "N/A"
                     binding.tvMonthlyRevenue.text = "N/A"
+                    recentReservationsAdapter.submitList(emptyList())
                 }
             }
         }
     }
 
-    fun onManageReservationsClick(view: View) {
-        requireActivity().supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, ManageReservationsFragment())
-            .addToBackStack(null)
-            .commit()
+    private fun setupClickListeners() {
+        binding.cardReservations.setOnClickListener {
+            openNavigationDrawerAndSelectItem(R.id.nav_manage_reservations)
+        }
+
+        binding.cardSalons.setOnClickListener {
+            openNavigationDrawerAndSelectItem(R.id.nav_manage_salons)
+        }
+
+        binding.cardServices.setOnClickListener {
+            openNavigationDrawerAndSelectItem(R.id.nav_manage_services)
+        }
     }
 
-    fun onManageSalonsClick(view: View) {
-        requireActivity().supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, ManageSalonsFragment())
-            .addToBackStack(null)
-            .commit()
-    }
+    private fun openNavigationDrawerAndSelectItem(menuItemId: Int) {
+        val mainActivity = requireActivity() as? MainActivity
+        mainActivity?.let { activity ->
+            if (activity.isDrawerOpen()) {
+                activity.closeDrawer()
+            }
 
-    fun onManageServicesClick(view: View) {
-        // Navegar al fragment de gestión de servicios
-        // requireActivity().supportFragmentManager.beginTransaction()...
-    }
-
-    fun onManageAdminsClick(view: View) {
-        // Navegar al fragment de gestión de administradores
-        // requireActivity().supportFragmentManager.beginTransaction()...
+            activity.selectNavigationItem(menuItemId)
+        }
     }
 
     override fun onDestroyView() {

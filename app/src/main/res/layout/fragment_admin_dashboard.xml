@@ -116,12 +116,14 @@
         <GridLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:id="@+id/grid_layout"
             android:columnCount="2"
             android:rowCount="3"
             android:alignmentMode="alignBounds">
 
             <!-- Gestionar Reservas -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/card_reservations"
                 android:layout_width="0dp"
                 android:layout_height="100dp"
                 android:layout_columnWeight="1"
@@ -136,8 +138,7 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:background="@color/white"
-                    android:padding="16dp"
-                    android:onClick="onManageReservationsClick">
+                    android:padding="16dp">
 
                     <ImageView
                         android:layout_width="48dp"
@@ -159,6 +160,7 @@
 
             <!-- Gestionar Salones -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/card_salons"
                 android:layout_width="0dp"
                 android:layout_height="100dp"
                 android:layout_columnWeight="1"
@@ -173,8 +175,7 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:background="@color/white"
-                    android:padding="16dp"
-                    android:onClick="onManageSalonsClick">
+                    android:padding="16dp">
 
                     <ImageView
                         android:layout_width="48dp"
@@ -196,6 +197,7 @@
 
             <!-- Gestionar Servicios -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/card_services"
                 android:layout_width="0dp"
                 android:layout_height="100dp"
                 android:layout_columnWeight="1"
@@ -210,8 +212,7 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:background="@color/white"
-                    android:padding="16dp"
-                    android:onClick="onManageServicesClick">
+                    android:padding="16dp">
 
                     <ImageView
                         android:layout_width="48dp"
@@ -223,43 +224,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Servicios"
-                        android:textColor="@color/text_dark_brown"
-                        android:textSize="14sp"
-                        android:layout_marginTop="8dp" />
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <!-- Gestionar Administradores -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="0dp"
-                android:layout_height="100dp"
-                android:layout_columnWeight="1"
-                android:layout_rowWeight="1"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@color/white"
-                    android:padding="16dp"
-                    android:onClick="onManageAdminsClick">
-
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/ic_admins"
-                        app:tint="@color/button_golden_brown" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Administradores"
                         android:textColor="@color/text_dark_brown"
                         android:textSize="14sp"
                         android:layout_marginTop="8dp" />

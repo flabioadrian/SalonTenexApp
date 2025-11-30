@@ -2,6 +2,7 @@ package com.example.salontenexapp.Vista
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -56,9 +57,32 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        if (userType == "client") {
+            menuInflater.inflate(R.menu.menu_toolbar_client, menu)
+            return true
+        }
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (userType == "client" && item.itemId == R.id.action_logout) {
+            logout()
+            return true
+        }
+
+        if (userType == "admin" && toggle.onOptionsItemSelected(item)) {
+            return true
+        }
+
+        return super.onOptionsItemSelected(item)
+    }
+
     private fun setupAdminNavigation() {
         binding.navView.visibility = android.view.View.VISIBLE
         binding.bottomNavigation.visibility = android.view.View.GONE
+
+        binding.drawerLayout.setDrawerLockMode(androidx.drawerlayout.widget.DrawerLayout.LOCK_MODE_UNLOCKED)
 
         toggle = ActionBarDrawerToggle(
             this,
@@ -69,6 +93,9 @@ class MainActivity : AppCompatActivity() {
         )
         binding.drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        invalidateOptionsMenu()
 
         binding.navView.setNavigationItemSelectedListener { menuItem ->
             handleAdminNavigation(menuItem)
@@ -79,6 +106,14 @@ class MainActivity : AppCompatActivity() {
     private fun setupClientNavigation() {
         binding.bottomNavigation.visibility = android.view.View.VISIBLE
         binding.navView.visibility = android.view.View.GONE
+
+        binding.drawerLayout.setDrawerLockMode(androidx.drawerlayout.widget.DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
+
+        binding.toolbar.navigationIcon = null
+
+        invalidateOptionsMenu()
 
         binding.bottomNavigation.setOnItemSelectedListener { menuItem ->
             handleClientNavigation(menuItem)
@@ -110,7 +145,6 @@ class MainActivity : AppCompatActivity() {
             R.id.nav_manage_reservations -> replaceFragment(ManageReservationsFragment())
             R.id.nav_manage_salons -> replaceFragment(ManageSalonsFragment())
             R.id.nav_manage_services -> replaceFragment(ManageServicesFragment())
-            R.id.nav_manage_admins -> replaceFragment(ManageAdminsFragment())
             R.id.nav_profile -> replaceFragment(ProfileFragment())
             R.id.nav_change_password -> replaceFragment(ChangePasswordFragment())
             R.id.nav_logout -> logout()
@@ -153,5 +187,20 @@ class MainActivity : AppCompatActivity() {
             }
         }
         onBackPressedDispatcher.addCallback(this, callback)
+    }
+
+    fun isDrawerOpen(): Boolean {
+        return binding.drawerLayout.isDrawerOpen(GravityCompat.START)
+    }
+
+    fun closeDrawer() {
+        binding.drawerLayout.closeDrawer(GravityCompat.START)
+    }
+
+    fun selectNavigationItem(menuItemId: Int) {
+        val menuItem = binding.navView.menu.findItem(menuItemId)
+        if (menuItem != null) {
+            handleAdminNavigation(menuItem)
+        }
     }
 }

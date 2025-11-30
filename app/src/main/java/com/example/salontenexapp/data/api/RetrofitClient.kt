@@ -30,8 +30,6 @@ object RetrofitClient {
         session?.let { cookie ->
             val cleanCookie = cookie.split(';').first()
             sessionCookie = cleanCookie
-
-            // Notificar para guardar en SharedPreferences
             onNewCookieReceived?.invoke(cleanCookie)
         }
 
@@ -43,7 +41,6 @@ object RetrofitClient {
         val response = chain.proceed(request)
 
         if (response.code == 401) {
-            // Sesión expirada - limpiar y notificar
             sessionCookie = null
             onSessionExpired?.invoke()
         }
@@ -53,6 +50,8 @@ object RetrofitClient {
     fun setOnNewCookieListener(listener: (String) -> Unit) {
         onNewCookieReceived = listener
     }
+
+
 
     private val authInterceptor = Interceptor { chain ->
         var request = chain.request()
