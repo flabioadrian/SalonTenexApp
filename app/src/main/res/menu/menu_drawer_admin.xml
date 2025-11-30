@@ -22,10 +22,6 @@
     <item android:title="@string/account">
         <menu>
             <item
-                android:id="@+id/nav_profile"
-                android:icon="@drawable/ic_profile"
-                android:title="@string/profile" />
-            <item
                 android:id="@+id/nav_change_password"
                 android:icon="@drawable/ic_password"
                 android:title="@string/change_password" />

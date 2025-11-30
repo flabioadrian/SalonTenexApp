@@ -6,13 +6,13 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Client(
-    @SerializedName("id") val id: Int,
+    @SerializedName("id_cliente") val id: Int,
     @SerializedName("nombre") val nombre: String,
     @SerializedName("apellido_paterno") val apellidoPaterno: String,
     @SerializedName("apellido_materno") val apellidoMaterno: String,
     @SerializedName("email") val email: String,
     @SerializedName("telefono") val telefono: String,
-    @SerializedName("nombre_completo") val nombreCompleto: String
+    @SerializedName("direccion") val direccion: String?,
 ) : Parcelable {
     override fun toString(): String {
         return nombre?.let { "$it ($email)" } ?: email

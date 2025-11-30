@@ -160,10 +160,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun replaceFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
+    fun replaceFragment(fragment: Fragment, addToBackStack: Boolean = false) {
+        val transaction = supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
-            .commit()
+
+        if (addToBackStack) {
+            transaction.addToBackStack(fragment.javaClass.simpleName)
+        }
+
+        transaction.commit()
     }
 
     private fun logout() {
