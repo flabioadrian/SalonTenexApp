@@ -1,6 +1,7 @@
 package com.example.salontenexapp.Vista.dialogs
 
 import android.app.AlertDialog
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -27,8 +28,8 @@ class ReservationDetailDialog : DialogFragment() {
     private val binding get() = _binding!!
     private lateinit var reservation: Reservation
     private var onReservationUpdated: (() -> Unit)? = null
+    private var isCurrentlyCancellable = false
 
-    // Callback para notificar cuando se actualiza una reservación
     fun setOnReservationUpdatedListener(listener: () -> Unit) {
         onReservationUpdated = listener
     }
@@ -56,7 +57,6 @@ class ReservationDetailDialog : DialogFragment() {
     }
 
     private fun setupUI() {
-        // Usar la reservación de la variable de clase
         binding.tvClientName.text = reservation.clientName ?: "N/A"
         binding.tvClientEmail.text = reservation.clientEmail ?: "N/A"
         binding.tvSalonName.text = reservation.salonName ?: "N/A"
@@ -65,30 +65,36 @@ class ReservationDetailDialog : DialogFragment() {
         binding.tvTime.text = reservation.calculateDuration() ?: "N/A"
         binding.tvTotalPrice.text = "$${reservation.totalPrice ?: 0}"
 
-        // Calcular duración aproximada
         val duration = calculateDuration(reservation.startTime ?: "", reservation.endTime ?: "")
         binding.tvDuration.text = duration
 
-        // Configurar estado
         when (reservation.status?.lowercase()) {
-            "confirmada", "confirmed" -> {
-                binding.tvStatus.text = "Confirmada"
-                binding.tvStatus.setBackgroundResource(R.color.status_confirmed)
-            }
-            "pendiente", "pending" -> {
-                binding.tvStatus.text = "Pendiente"
-                binding.tvStatus.setBackgroundResource(R.color.status_pending)
+            "confirmada", "confirmed", "pendiente", "pending" -> {
+                binding.tvStatus.text = if (reservation.status?.lowercase() == "pendiente") "Pendiente" else "Confirmada"
+                binding.tvStatus.setBackgroundResource(if (reservation.status?.lowercase() == "pendiente") R.color.status_pending else R.color.status_confirmed)
+
+                binding.btnCancelReservation.text = getString(R.string.cancel_reservation)
+                binding.btnCancelReservation.isEnabled = true
+                binding.btnEdit.isEnabled = true
+                isCurrentlyCancellable = true
             }
             "cancelada", "cancelled", "cancelado" -> {
                 binding.tvStatus.text = "Cancelada"
                 binding.tvStatus.setBackgroundResource(R.color.status_cancelled)
-                // Deshabilitar botones si está cancelada
-                binding.btnCancelReservation.isEnabled = false
+
+                binding.btnCancelReservation.backgroundTintList = ColorStateList.valueOf(requireContext().getColor(R.color.status_confirmed))
+                binding.btnCancelReservation.setTextColor(requireContext().getColor(R.color.white))
+                binding.btnCancelReservation.text = getString(R.string.activar_reserva)
+                binding.btnCancelReservation.isEnabled = true
                 binding.btnEdit.isEnabled = false
+                isCurrentlyCancellable = false
             }
             else -> {
                 binding.tvStatus.text = reservation.status ?: "Desconocido"
                 binding.tvStatus.setBackgroundResource(R.color.light_blue_600)
+                binding.btnCancelReservation.isEnabled = false
+                binding.btnEdit.isEnabled = false
+                isCurrentlyCancellable = false
             }
         }
     }
@@ -119,10 +125,17 @@ class ReservationDetailDialog : DialogFragment() {
     }
 
     private fun showCancelConfirmation() {
+        val title = if (isCurrentlyCancellable) "Cancelar Reservación" else "Activar Reservación"
+        val message = if (isCurrentlyCancellable)
+            "¿Estás seguro de que deseas cancelar esta reservación?"
+        else
+            "¿Estás seguro de que deseas reactivar (confirmar) esta reservación?"
+        val positiveButtonText = if (isCurrentlyCancellable) "Sí, cancelar" else "Sí, activar"
+
         AlertDialog.Builder(requireContext())
-            .setTitle("Cancelar Reservación")
-            .setMessage("¿Estás seguro de que deseas cancelar esta reservación?")
-            .setPositiveButton("Sí, cancelar") { dialog, which ->
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(positiveButtonText) { dialog, which ->
                 cancelReservation()
             }
             .setNegativeButton("No", null)
@@ -130,7 +143,7 @@ class ReservationDetailDialog : DialogFragment() {
     }
 
     private fun cancelReservation() {
-        // Mostrar loading
+        val actionMessage = if (isCurrentlyCancellable) "cancelando" else "activando"
         binding.btnCancelReservation.isEnabled = false
 
         val cancelRequest = CancelReservationRequest(
@@ -144,15 +157,14 @@ class ReservationDetailDialog : DialogFragment() {
                 if (response.isSuccessful) {
                     val apiResponse = response.body()
                     if (apiResponse?.success == true) {
-                        Toast.makeText(requireContext(), "Reservación cancelada exitosamente", Toast.LENGTH_SHORT).show()
-                        // Notificar que la reservación fue actualizada
+                        Toast.makeText(requireContext(), apiResponse.message ?: "Reservación actualizada exitosamente", Toast.LENGTH_SHORT).show()
                         onReservationUpdated?.invoke()
                         dismiss()
                     } else {
-                        Toast.makeText(requireContext(), "Error: ${apiResponse?.message ?: "Error desconocido"}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Error al $actionMessage: ${apiResponse?.message ?: "Error desconocido"}", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(requireContext(), "Error del servidor: ${response.message()}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Error del servidor al $actionMessage: ${response.message()}", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -166,7 +178,6 @@ class ReservationDetailDialog : DialogFragment() {
     private fun openEditReservation() {
         val editDialog = CreateReservationDialog.newInstance(reservation)
         editDialog.setOnReservationUpdatedListener {
-            // Notificar que la reservación fue actualizada
             onReservationUpdated?.invoke()
         }
         editDialog.show(parentFragmentManager, "EditReservationDialog")

@@ -83,7 +83,7 @@ class CreateReservationPresenter(
                     fecha = date,
                     hora_inicio = startTime,
                     hora_fin = endTime,
-                    estado = "Pendiente",
+                    estado = "Confirmada",
                     nombre_servicio = serviceToSend
                 )
 

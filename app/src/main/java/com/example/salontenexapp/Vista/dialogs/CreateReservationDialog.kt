@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.example.salontenexapp.Contrato.ReservationContract
@@ -102,6 +103,19 @@ class CreateReservationDialog : DialogFragment(), ReservationContract.CreateRese
                 createReservation()
             }
         }
+        binding.spinnerSalon.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                updateTotalPrices()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+
+        binding.spinnerService.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                updateTotalPrices()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
     }
 
     private fun fillFormWithExistingData(reservation: Reservation) {
@@ -144,12 +158,74 @@ class CreateReservationDialog : DialogFragment(), ReservationContract.CreateRese
                 } else {
                     binding.etEndTime.setText(timeString)
                 }
+                updateTotalPrices()
             },
             hour,
             minute,
             true
         )
         timePickerDialog.show()
+    }
+
+    private fun updateTotalPrices() {
+        val selectedSalon = presenter.getSalonByPosition(binding.spinnerSalon.selectedItemPosition)
+
+        val servicioPosition = binding.spinnerService.selectedItemPosition
+        val selectedServicio = if (servicioPosition == 0) {
+            null
+        } else {
+            presenter.getServicioByPosition(servicioPosition - 1)
+        }
+
+        val startTime = binding.etStartTime.text.toString()
+        val endTime = binding.etEndTime.text.toString()
+
+        val formattedStartTime = if (startTime.length == 5) "$startTime:00" else startTime
+        val formattedEndTime = if (endTime.length == 5) "$endTime:00" else endTime
+
+        val (salonPrice, hours) = calculateSalonPriceLogic(selectedSalon, formattedStartTime, formattedEndTime)
+
+        Log.d("PRICE_DEBUG", "Salon: ${selectedSalon?.name}, Price: ${selectedSalon?.price}, Hours: $hours")
+        Log.d("PRICE_DEBUG", "Servicio: ${selectedServicio?.nombreServicio}, Costo: ${selectedServicio?.costo}")
+
+        val servicePrice = selectedServicio?.costo ?: 0.0
+
+        val totalPrice = salonPrice + servicePrice
+
+        val format = "%.2f"
+        binding.tvSalonPrice.text = String.format(format, salonPrice)
+        binding.tvServicePrice.text = String.format(format, servicePrice)
+        binding.tvTotalPrice.text = String.format(format, totalPrice)
+    }
+
+    private fun calculateSalonPriceLogic(salon: Salon?, startTime: String, endTime: String): Pair<Double, Int> {
+        if (salon == null || startTime.isEmpty() || endTime.isEmpty()) {
+            Log.d("PRICE_DEBUG", "Datos insuficientes: salon=$salon, start=$startTime, end=$endTime")
+            return Pair(0.0, 0)
+        }
+
+        return try {
+            val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+            val start = timeFormat.parse(startTime)
+            val end = timeFormat.parse(endTime)
+
+            if (start == null || end == null) {
+                return Pair(0.0, 0)
+            }
+
+            val diffMillis = end.time - start.time
+            val hours = diffMillis / (1000.0 * 60 * 60)
+
+            val actualHours = if (hours < 0) hours + 24 else hours
+
+            val price = (salon.price ?: 0.0) * actualHours
+            Log.d("PRICE_DEBUG", "Cálculo: ${salon.price} * $actualHours = $price")
+
+            Pair(price, actualHours.toInt())
+        } catch (e: Exception) {
+            Log.e(TAG, "Error al calcular el precio del salón: ${e.message}")
+            Pair(0.0, 0)
+        }
     }
 
     private fun createReservation() {
@@ -188,11 +264,14 @@ class CreateReservationDialog : DialogFragment(), ReservationContract.CreateRese
             return
         }
 
-        // Mostrar loading
         showLoading()
 
         val formattedStartTime = if (startTime.length == 5) "$startTime:00" else startTime
         val formattedEndTime = if (endTime.length == 5) "$endTime:00" else endTime
+
+        val (newTotalSala, _) = calculateSalonPriceLogic(selectedSalon, formattedStartTime, formattedEndTime)
+        val servicePrice = selectedServicio?.costo ?: 0.0
+        val finalTotal = newTotalSala + servicePrice
 
         val editRequest = EditReservationRequest(
             idReserva = existingReservation!!.id ?: 0,
@@ -200,11 +279,10 @@ class CreateReservationDialog : DialogFragment(), ReservationContract.CreateRese
             fecha = date,
             horaInicio = formattedStartTime,
             horaFin = formattedEndTime,
-            totalPagar = calculateTotal(selectedSalon, formattedStartTime, formattedEndTime),
+            totalPagar = finalTotal,
             idServicio = selectedServicio?.idServicio
         )
 
-        // Llamar a la API
         RetrofitClient.apiService.editReservation(editRequest).enqueue(object :
             Callback<ApiResponse> {
             override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
@@ -299,6 +377,7 @@ class CreateReservationDialog : DialogFragment(), ReservationContract.CreateRese
                 binding.spinnerSalon.setSelection(salonPosition)
             }
         }
+        updateTotalPrices()
     }
 
     override fun onServiciosLoaded(servicios: List<Servicio>) {
@@ -318,6 +397,7 @@ class CreateReservationDialog : DialogFragment(), ReservationContract.CreateRese
                 binding.spinnerService.setSelection(servicePosition)
             }
         }
+        updateTotalPrices()
     }
 
     override fun showLoading() {
@@ -348,7 +428,6 @@ class CreateReservationDialog : DialogFragment(), ReservationContract.CreateRese
         Log.e(TAG, "Error al crear la reserva: $error")
     }
 
-    // Función para calcular el total (puedes implementarla según tu lógica de negocio)
     private fun calculateTotal(salon: Salon, startTime: String, endTime: String): Double {
         return try {
             val startHour = startTime.substring(0, 2).toInt()

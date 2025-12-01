@@ -53,6 +53,7 @@
     <string name="edit">Editar</string>
     <string name="cancel_reservation">Cancelar</string>
     <string name="close">Cerrar</string>
+    <string name="activar_reserva">Activar</string>
 
     <!-- Create Reservation Dialog -->
     <string name="client">Cliente</string>
