@@ -117,13 +117,6 @@ class CreateReservationDialog : DialogFragment(), ReservationContract.CreateRese
         timePickerDialog.show()
     }
 
-    private fun setupServiceSpinner() {
-        val services = arrayOf("Ninguno", "Servicio de Catering", "Servicio de Audio", "Servicio de Limpieza")
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, services)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spinnerService.adapter = adapter
-    }
-
     private fun createReservation() {
         val selectedClient = presenter.getClientByPosition(binding.spinnerClient.selectedItemPosition)
         val selectedSalon = presenter.getSalonByPosition(binding.spinnerSalon.selectedItemPosition)

@@ -1,10 +1,14 @@
 package com.example.salontenexapp.data.api
 
+import com.example.salontenexapp.Modelo.ApiResponse
+import com.example.salontenexapp.Modelo.CancelReservationRequest
 import com.example.salontenexapp.Modelo.ChangePasswordRequest
 import com.example.salontenexapp.Modelo.ChangePasswordResponse
 import com.example.salontenexapp.Modelo.Client
+import com.example.salontenexapp.Modelo.EditReservationRequest
 import com.example.salontenexapp.Modelo.LoginRequest
 import com.example.salontenexapp.Modelo.LoginResponse
+import com.example.salontenexapp.Modelo.ReservationClient
 import com.example.salontenexapp.data.Reservation
 import com.example.salontenexapp.Modelo.ReservationRequest
 import com.example.salontenexapp.data.Salon
@@ -14,10 +18,6 @@ import com.example.salontenexapp.Modelo.ServicioRequest
 import com.example.salontenexapp.Modelo.ServicioResponse
 import com.example.salontenexapp.Modelo.StatusResponse
 import com.example.salontenexapp.Modelo.UploadImageResponse
-import com.example.salontenexapp.data.ApiResponse
-import com.example.salontenexapp.data.CancelReservationRequest
-import com.example.salontenexapp.data.EditReservationRequest
-import com.example.salontenexapp.data.ReservationClient
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.Call

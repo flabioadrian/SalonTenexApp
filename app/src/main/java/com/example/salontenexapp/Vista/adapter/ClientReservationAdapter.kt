@@ -7,7 +7,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.salontenexapp.R
-import com.example.salontenexapp.data.ReservationClient
+import com.example.salontenexapp.Modelo.ReservationClient
 import com.google.android.material.button.MaterialButton
 
 class ClientReservationAdapter(
@@ -35,12 +35,12 @@ class ClientReservationAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val reservation = reservations[position]
-        holder.tvSalaName.text = reservation.nombre_sala
+        holder.tvSalaName.text = reservation.nombreSala
         holder.tvDate.text = reservation.fecha
-        holder.tvTime.text = "${reservation.hora_inicio} - ${reservation.hora_fin}"
-        holder.tvService.text = "Servicio: ${reservation.nombre_servicio ?: "No especificado"}"
+        holder.tvTime.text = "${reservation.horaInicio} - ${reservation.horaFin}"
+        holder.tvService.text = "Servicio: ${reservation.nombreServicio ?: "No especificado"}"
         holder.tvStatus.text = reservation.estado
-        holder.tvTotal.text = "$${reservation.total_pagar}"
+        holder.tvTotal.text = "$${reservation.totalPagar}"
 
         when (reservation.estado.lowercase()) {
             "confirmado" -> holder.tvStatus.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.green))
