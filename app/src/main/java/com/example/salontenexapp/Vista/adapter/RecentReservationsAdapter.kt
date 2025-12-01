@@ -2,12 +2,16 @@ package com.example.salontenexapp.Vista.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.salontenexapp.databinding.ItemRecentReservationBinding
 import com.example.salontenexapp.data.Reservation
 import com.example.salontenexapp.R
+import com.example.salontenexapp.Vista.AdminDashboardFragment
+import com.example.salontenexapp.Vista.ManageReservationsFragment
+import com.example.salontenexapp.Vista.dialogs.ReservationDetailDialog
 
 class RecentReservationsAdapter(private val onItemClick: (Reservation) -> Unit) : ListAdapter<Reservation, RecentReservationsAdapter.ViewHolder>(DiffCallback) {
 
@@ -23,7 +27,23 @@ class RecentReservationsAdapter(private val onItemClick: (Reservation) -> Unit) 
         holder.bind(reservation)
 
         holder.itemView.setOnClickListener {
-            onItemClick(reservation)
+            val dialog = ReservationDetailDialog.newInstance(reservation)
+
+            // **AQUÍ ESTABA EL ERROR**
+            dialog.setOnReservationUpdatedListener {
+                // Se usa el Context del itemView
+                (holder.itemView.context as? FragmentActivity)?.supportFragmentManager?.fragments?.forEach { fragment ->
+                    if (fragment is ManageReservationsFragment) {
+                        fragment.presenter.refreshReservations()
+                    } else if (fragment is AdminDashboardFragment) {
+                        fragment.loadDashboardData()
+                    }
+                }
+            }
+
+            // Esta parte ya estaba correcta:
+            dialog.show((holder.itemView.context as? FragmentActivity)?.supportFragmentManager
+                ?: return@setOnClickListener, "ReservationDetailDialog")
         }
     }
 

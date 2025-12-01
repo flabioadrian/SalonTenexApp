@@ -67,12 +67,10 @@ class CreateReservationFragment : Fragment(), CreateReservationContract.View {
         prefs = SharedPreferencesManager(requireContext())
         clientService = RetrofitClient.retrofit.create(ClientService::class.java)
 
-        // Initialize presenter
         presenter = ClientCreateReservationPresenter().apply {
             attachView(this@CreateReservationFragment)
             initializeServices(prefs, clientService)
 
-            // Check if edit mode
             arguments?.getParcelable<ReservationClient>(ARG_RESERVATION)?.let { reservation ->
                 setEditMode(true, reservation)
                 binding.tvTitle.text = "Editar Reserva"

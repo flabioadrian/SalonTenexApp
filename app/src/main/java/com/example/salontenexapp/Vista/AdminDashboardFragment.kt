@@ -15,6 +15,8 @@ import kotlinx.coroutines.launch
 import com.example.salontenexapp.R
 import kotlinx.coroutines.withContext
 import com.example.salontenexapp.Vista.adapter.RecentReservationsAdapter
+import java.text.SimpleDateFormat
+import java.util.*
 
 class AdminDashboardFragment : Fragment() {
 
@@ -40,7 +42,7 @@ class AdminDashboardFragment : Fragment() {
 
     private fun setupRecyclerView() {
         recentReservationsAdapter = RecentReservationsAdapter { reservation ->
-
+            // Manejar clic en reservación si es necesario
         }
         binding.rvRecentReservations.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -48,7 +50,7 @@ class AdminDashboardFragment : Fragment() {
         }
     }
 
-    private fun loadDashboardData() {
+    fun loadDashboardData() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val apiService = RetrofitClient.apiService
@@ -56,30 +58,58 @@ class AdminDashboardFragment : Fragment() {
 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
-                        val recentReservations = response.body()
-                        if (!recentReservations.isNullOrEmpty()) {
-                            recentReservationsAdapter.submitList(recentReservations)
+                        val allReservations = response.body()
+                        if (!allReservations.isNullOrEmpty()) {
+                            recentReservationsAdapter.submitList(allReservations)
+
+                            // Calcular métricas usando los datos de las reservaciones
+                            calculateDashboardMetrics(allReservations)
                         } else {
                             recentReservationsAdapter.submitList(emptyList())
+                            setDefaultMetrics()
                         }
                     } else {
                         recentReservationsAdapter.submitList(emptyList())
+                        setDefaultMetrics()
                     }
-
-                    val todayReservations = 12
-                    val monthlyRevenue = 8450.0
-                    binding.tvTodayReservations.text = todayReservations.toString()
-                    binding.tvMonthlyRevenue.text = "$${monthlyRevenue}"
                 }
 
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    binding.tvTodayReservations.text = "N/A"
-                    binding.tvMonthlyRevenue.text = "N/A"
+                    setDefaultMetrics()
                     recentReservationsAdapter.submitList(emptyList())
                 }
             }
         }
+    }
+
+    private fun calculateDashboardMetrics(reservations: List<Reservation>) {
+        // Obtener fecha actual
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val currentMonth = SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date())
+
+        // Filtrar reservaciones de hoy
+        val todayReservations = reservations.filter { reservation ->
+            reservation.date == currentDate
+        }
+
+        // Filtrar reservaciones del mes actual y calcular ingresos
+        val monthlyRevenue = reservations
+            .filter { reservation ->
+                reservation.date?.startsWith(currentMonth) == true
+            }
+            .sumOf { reservation ->
+                reservation.totalPrice ?: 0.0
+            }
+
+        // Actualizar UI
+        binding.tvTodayReservations.text = todayReservations.size.toString()
+        binding.tvMonthlyRevenue.text = "$${monthlyRevenue}"
+    }
+
+    private fun setDefaultMetrics() {
+        binding.tvTodayReservations.text = "0"
+        binding.tvMonthlyRevenue.text = "$0.0"
     }
 
     private fun setupClickListeners() {
